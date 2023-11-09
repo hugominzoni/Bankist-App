@@ -81,33 +81,26 @@ const displayMovements = function(movements){
   })
 }
 
-displayMovements(account1.movements)
-
 const calcDisplayBalance = (movements) =>{
   const balance = movements.reduce((acc, mov) => acc + mov, 0)
   labelBalance.textContent = `${balance}€`
 }
 
-calcDisplayBalance(account1.movements)
 
-
-const calcDisplaySummary = function(movements){
-  const incomes = movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0)
+const calcDisplaySummary = function(acc){
+  const incomes = acc.movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0)
   labelSumIn.textContent = `${incomes}€`;
 
-  const outcomes = movements.filter(mov => mov < 0).reduce((acc,mov) => acc + mov, 0)
+  const outcomes = acc.movements.filter(mov => mov < 0).reduce((acc,mov) => acc + mov, 0)
   labelSumOut.textContent = `${Math.abs(outcomes)}€`;
 
-  const interest = movements
+  const interest = acc.movements
   .filter(mov => mov > 0)
-  .map(deposit => deposit * 1.2 / 100)
+  .map(deposit => (deposit * acc.interestRate) / 100)
   .filter((int)=> int >= 1)
   .reduce((acc, int) => acc + int, 0)
   labelSumInterest.textContent = `${interest}€`
 }
-
-
-calcDisplaySummary(account1.movements)
 
 const createUsernames = accs =>{
 
@@ -122,8 +115,35 @@ const createUsernames = accs =>{
 
 createUsernames(accounts);
 
+//EVENTS HANDLERS
+
+let currentAccount;
+
+btnLogin.addEventListener('click', function(e){
+  e.preventDefault()
+  currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value)
+  
+  if(currentAccount?.pin === Number(inputLoginPin.value)){
+    //DISPLAY UI AND WELCOME MSG
+    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
+    containerApp.style.opacity = 100;
+
+    //CLEAR INPUT FIELDS
+    inputLoginPin.value= '';
+    inputLoginUsername.value = '';
+    inputLoginPin.blur();
+
+    // DISPLAY MOVEMENTS
+    displayMovements(currentAccount.movements)
 
 
+    //DISPLAY BALANCE
+    calcDisplayBalance(currentAccount.movements)
+
+    //DISPLAY SUMMARY
+    calcDisplaySummary(currentAccount)
+  }
+})
 
 
 
@@ -146,3 +166,4 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 // const withdrawal = movements.filter(mov => mov < 0)
 // console.log(deposits, withdrawal);
+ 
